@@ -1,0 +1,25 @@
+module seven_segment(
+
+input [2:0] floor,
+output reg [3:0] led
+
+);
+
+always @(*)
+begin
+
+case(floor)
+
+3'd0: led=4'b0000;
+3'd1: led=4'b0001;
+3'd2: led=4'b0010;
+3'd3: led=4'b0011;
+3'd4: led=4'b0100;
+
+default: led=4'b1111;
+
+endcase
+
+end
+
+endmodule
