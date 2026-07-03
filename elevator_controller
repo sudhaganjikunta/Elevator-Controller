@@ -1,0 +1,110 @@
+module elevator_controller(
+
+input clk,
+input reset,
+input [4:0] req,
+
+output reg [2:0] floor,
+output reg up,
+output reg down,
+output reg door
+
+);
+
+parameter IDLE=0,MOVE=1,OPEN=2;
+
+reg [1:0] state;
+
+reg [4:0] requests;
+reg [4:0] req_prev;
+
+reg [3:0] door_timer;
+
+always @(posedge clk or posedge reset)
+begin
+
+if(reset)
+begin
+state<=IDLE;
+floor<=0;
+requests<=0;
+req_prev<=0;
+door<=0;
+up<=0;
+down<=0;
+door_timer<=0;
+end
+
+else
+begin
+
+// store requests (queue)
+requests <= requests | (req & ~req_prev);
+req_prev <= req;
+
+case(state)
+
+IDLE:
+begin
+door<=0;
+
+if(requests!=0)
+state<=MOVE;
+end
+
+MOVE:
+begin
+    // If current floor has a request ? stop and open door
+    if(requests[floor]) begin
+        requests[floor] <= 0;   // clear that request
+        door_timer <= 0;
+        up <= 0;
+        down <= 0;
+        state <= OPEN;
+    end
+
+    // If there are requests above current floor ? go up
+    else if(requests >> (floor+1)) begin
+        up <= 1;
+        down <= 0;
+        floor <= floor + 1;
+    end
+
+    // If there are requests below current floor ? go down
+    else if((requests & ((1<<floor)-1)) != 0) begin
+        up <= 0;
+        down <= 1;
+        floor <= floor - 1;
+    end
+
+    // If no requests at all ? go back to IDLE
+    else begin
+        up <= 0;
+        down <= 0;
+        state <= IDLE;
+    end
+end
+
+
+
+
+OPEN:
+begin
+
+door<=1;
+
+if(door_timer<5)
+door_timer<=door_timer+1;
+
+else
+state<=IDLE;
+
+end
+
+endcase
+
+end
+end
+
+endmodule
+
