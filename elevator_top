@@ -1,0 +1,38 @@
+module elevator_top(
+
+input clk,
+input reset,
+input [4:0] req,
+
+output [3:0] led,
+output up,
+output down,
+output door
+
+);
+
+wire slow_clk;
+wire [2:0] floor;
+
+clock_divider CD(
+.clk(clk),
+.reset(reset),
+.slow_clk(slow_clk)
+);
+
+elevator_controller EC(
+.clk(slow_clk),
+.reset(reset),
+.req(req),
+.floor(floor),
+.up(up),
+.down(down),
+.door(door)
+);
+
+seven_segment SSD(
+.floor(floor),
+.led(led)
+);
+
+endmodule
